@@ -116,7 +116,7 @@ const ScheduleAndMenu = () => {
       if (response.status === 200) {
         const enrichedData = response.data.menus.docs.map((item: any) => ({
           url: item.url,
-          type: item.type || inferFileType(item.url), // Add type or infer
+          type: item.type || inferFileType(item.url),
         }));
         console.log("c", enrichedData);
 

@@ -51,6 +51,7 @@ const MedicineList = () => {
     const fetchData = async () => {
       setLoading(true);
       const response = await axios.get(`${configs.API_URL}/medicines`, {
+        params: { studentId: userData._id },
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
