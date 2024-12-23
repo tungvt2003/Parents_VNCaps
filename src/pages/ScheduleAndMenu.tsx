@@ -9,6 +9,7 @@ import ImagePreviewGroupComponent from "../components/ImagePreview/ImagePreview"
 import Redirect from "../components/Navigate/Redirect";
 import { read, utils } from "xlsx";
 import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
+import Spreadsheet from "react-spreadsheet";
 const inferFileType = (url: string): string => {
   const extension = url.split(".").pop()?.toLowerCase();
   switch (extension) {
@@ -73,7 +74,6 @@ const ScheduleAndMenu = () => {
           url: item.url,
           type: item.type || inferFileType(item.url),
         }));
-        console.log("b", enrichedData);
 
         setScheduleData(enrichedData);
       }
@@ -118,7 +118,6 @@ const ScheduleAndMenu = () => {
           url: item.url,
           type: item.type || inferFileType(item.url),
         }));
-        console.log("c", enrichedData);
 
         setMenuData(enrichedData);
       }
@@ -141,7 +140,7 @@ const ScheduleAndMenu = () => {
     return data.map((item, index) => {
       if (item.type === "image") {
         return <ImagePreviewGroupComponent key={index} data={[item]} />;
-      } else if (item.type === "pdf" || item.type === "xlsx") {
+      } else if (item.type === "pdf") {
         return (
           <DocViewer
             documents={[
@@ -154,12 +153,93 @@ const ScheduleAndMenu = () => {
             style={{ height: "100%", width: "100%" }}
           />
         );
+      } else if (item.type === "xlsx") {
+        return (
+          <XlsxPreview key={index} url={`${configs.BASE_URL}/${item.url}`} />
+        );
       } else {
         return <p key={index}>Không thể hiển thị tệp này.</p>;
       }
     });
   };
+  const XlsxPreview = ({ url }: { url: string }) => {
+    const [data, setData] = useState<any[][] | null>(null);
+    useEffect(() => {
+      const fetchXlsx = async () => {
+        try {
+          const response = await axios.get(url, {
+            responseType: "arraybuffer",
+          });
+          const data = new Uint8Array(response.data);
+          const workbook = read(data, { type: "array" });
+          if (!workbook.SheetNames.length) {
+            throw new Error("Tệp không chứa bất kỳ bảng nào.");
+          }
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          let sheetData = utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+          const formattedData = sheetData.map((row) =>
+            row.map((cell) => ({
+              value: cell === undefined ? "" : String(cell),
+              readOnly: true,
+            }))
+          );
 
+          setData(formattedData);
+        } catch (error) {
+          console.error("Lỗi khi tải tệp Excel:", error);
+          message.error("Không thể tải tệp Excel. Vui lòng kiểm tra tệp.");
+        }
+      };
+      fetchXlsx();
+    }, [url]);
+    if (!data) {
+      return <p>Đang tải...</p>;
+    }
+
+    return (
+      <div className="w-full max-w-full relative">
+        <div className="overflow-x-auto">
+          <div className="min-w-full">
+            <Spreadsheet data={data} onChange={() => {}} />
+          </div>
+        </div>
+        <style>{`
+        .Spreadsheet__table {
+          width: 100%;
+          min-width: 100%;
+        }
+        .Spreadsheet__cell {
+          background-color: #f5f5f5;
+          cursor: default;
+          min-width: 120px;
+          max-width: 200px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          padding: 8px;
+        }
+        .Spreadsheet__header {
+          background-color: #e5e7eb;
+          font-weight: bold;
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+        .Spreadsheet__cell:hover,
+        .Spreadsheet__cell:focus {
+          background-color: #f5f5f5;
+          outline: none;
+          border-color: #e2e8f0;
+        }
+        .Spreadsheet {
+          height: calc(100vh - 250px);
+          overflow: auto;
+        }
+      `}</style>
+      </div>
+    );
+  };
   useEffect(() => {
     const today = dayjs();
     setSelectedDate(today);

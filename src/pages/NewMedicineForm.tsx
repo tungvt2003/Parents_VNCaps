@@ -219,17 +219,21 @@ const NewMedicineForm = () => {
             className="bg-white p-4 rounded-md shadow-md"
           >
             <Radio.Group
-              className="flex flex-col gap-2"
+              className="flex flex-col gap-3"
               onChange={handleRadioChange}
             >
-              <Radio value="Uống thuốc trước khi ăn">
+              <Radio value="Uống thuốc trước khi ăn" className="text-lg">
                 Uống thuốc trước khi ăn
               </Radio>
-              <Radio value="Uống thuốc trong khi ăn">
+              <Radio value="Uống thuốc trong khi ăn" className="text-lg">
                 Uống thuốc trong khi ăn
               </Radio>
-              <Radio value="Uống thuốc sau khi ăn">Uống thuốc sau khi ăn</Radio>
-              <Radio value="other">Lưu ý khác</Radio>
+              <Radio value="Uống thuốc sau khi ăn" className="text-lg">
+                Uống thuốc sau khi ăn
+              </Radio>
+              <Radio value="other" className="text-lg">
+                Lưu ý khác
+              </Radio>
               {formValues.noteValue === "other" && (
                 <Form.Item
                   name="customNote"

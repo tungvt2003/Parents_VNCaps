@@ -1,0 +1,6 @@
+.custom-drawer {
+  padding: 0 !important;
+}
+:where(.css-dev-only-do-not-override-1kf000u).ant-drawer .ant-drawer-body {
+  padding: 0;
+}

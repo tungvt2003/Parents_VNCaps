@@ -94,7 +94,10 @@ const MedicineList = () => {
           type="primary"
           htmlType="submit"
           block
-          onClick={() => navigate("/new-medicine-form")}
+          onClick={() => {
+            navigate("/new-medicine-form");
+            localStorage.removeItem("medicineForm");
+          }}
           className=" bg-[#8dc53f] hover:!bg-[#8dc53f] hover:opacity-70 text-base font-medium py-5 rounded-full shadow-md"
         >
           <svg

@@ -5,7 +5,7 @@ import { Drawer } from "antd";
 import { Images } from "../../constants/images";
 import { configs } from "../../configs";
 import { Student } from "../../types/user";
-
+import "./CustomNavbar.css";
 const NavbarFooter = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,11 +29,9 @@ const NavbarFooter = () => {
       const parsedStudent = JSON.parse(savedStudent);
       if (parsedStudent?._id) {
         setSelectedStudentId(parsedStudent._id);
-        console.log(parsedStudent._id);
       }
     }
   }, []);
-  console.log("asdasdasd", selectedStudentId);
 
   return (
     <>
@@ -114,6 +112,7 @@ const NavbarFooter = () => {
                 localStorage.setItem("user", JSON.stringify(student));
                 setSelectedStudentId(student._id);
                 window.dispatchEvent(new Event("userChange"));
+                navigate("/");
               }}
               className={`flex items-center gap-4 p-4 hover:bg-gray-100 ${
                 selectedStudentId === student._id ? "bg-[#f3f3f3]" : ""
