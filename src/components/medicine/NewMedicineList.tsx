@@ -15,13 +15,13 @@ const NewMedicineList = () => {
         const updatedItems = [...medicineItems];
         updatedItems.splice(index, 1);
         setMedicineItems(updatedItems);
-        sessionStorage.setItem("medicineItems", JSON.stringify(updatedItems));
+        localStorage.setItem("medicineItems", JSON.stringify(updatedItems));
       },
     });
   };
 
   useEffect(() => {
-    const items = JSON.parse(sessionStorage.getItem("medicineItems") || "[]");
+    const items = JSON.parse(localStorage.getItem("medicineItems") || "[]");
     setMedicineItems(items);
   }, []);
 
