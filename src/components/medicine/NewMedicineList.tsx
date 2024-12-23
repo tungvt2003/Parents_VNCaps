@@ -26,7 +26,7 @@ const NewMedicineList = () => {
   }, []);
 
   return medicineItems.length > 0 ? (
-    <div className="w-full bg-white rounded-lg p-4 space-y-3">
+    <div className="w-full bg-white rounded-lg p-4 space-y-3 shadow-md">
       {medicineItems.map((item: MedicineItem, index) => (
         <div
           key={index}
@@ -34,7 +34,7 @@ const NewMedicineList = () => {
         >
           <div className="font-semibold">{item.medicineName}</div>
           <div className="text-sm text-gray-600">
-            <span>Dạng thuốc: {item.setMedicineType}</span>
+            <span>Dạng thuốc: {item.medicineType}</span>
           </div>
           <div className="flex flex-row items-center justify-between mt-2">
             <div className="text-sm">Sáng: {item.medicineMorning || "0"}</div>
@@ -43,7 +43,9 @@ const NewMedicineList = () => {
               Chiều: {item.medicineAfternoon || "0"}
             </div>
             <button
-              onClick={() => removeMedicineItem(index)}
+              onClick={() => {
+                removeMedicineItem(index);
+              }}
               className="text-red-500"
             >
               <svg

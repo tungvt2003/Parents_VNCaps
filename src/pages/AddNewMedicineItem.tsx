@@ -54,7 +54,7 @@ const AddNewMedicineItem = () => {
       medicineAfternoon: "",
     });
 
-    navigate("/new-medicine-form");
+    navigate("/new-medicine-form", { state: { fromNewMedicineItem: true } });
   };
 
   const renderInputField = (
@@ -88,7 +88,7 @@ const AddNewMedicineItem = () => {
         />
 
         <select
-          className="p-3 bg-white rounded-2xl w-full"
+          className="p-3 bg-white rounded-2xl w-full mr-4"
           value={medicineData.medicineType}
           onChange={(e) => handleInputChange("medicineType", e.target.value)}
         >

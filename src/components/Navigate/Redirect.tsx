@@ -22,7 +22,12 @@ const Redirect = ({
         <button
           onClick={() => {
             if (goBackTo) {
-              navigate(goBackTo);
+              if (goBackTo === "/medicine-list") {
+                localStorage.removeItem("medicineForm");
+                navigate(goBackTo);
+              } else {
+                navigate(goBackTo);
+              }
             } else {
               navigate(-1);
             }

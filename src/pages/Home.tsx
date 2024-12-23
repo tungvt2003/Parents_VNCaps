@@ -40,6 +40,7 @@ const Home = () => {
           </Link>
         </div>
       </div>
+
       {/* <NavbarFooter /> */}
     </div>
   );

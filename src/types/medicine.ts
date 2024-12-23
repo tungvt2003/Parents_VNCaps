@@ -3,5 +3,5 @@ export interface MedicineItem {
   medicineMorning?: string;
   medicineLunch?: string;
   medicineAfternoon?: string;
-  setMedicineType?: string;
+  medicineType?: string;
 }

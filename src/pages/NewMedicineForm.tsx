@@ -1,30 +1,85 @@
 import { DatePicker, Form, Input, Radio, Button, message } from "antd";
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import NewMedicineList from "../components/medicine/NewMedicineList";
 import axios from "axios";
 import { configs } from "../configs";
 import Redirect from "../components/Navigate/Redirect";
 import Context from "./context";
+import dayjs from "dayjs";
 
 const NewMedicineForm = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const [noteValue, setNoteValue] = useState("");
+  const location = useLocation();
+  const [formValues, setFormValues] = useState({
+    inputData: "",
+    noteValue: "",
+    customNote: "",
+    dateStart: null as dayjs.Dayjs | null,
+    dateEnd: null as dayjs.Dayjs | null,
+  });
   const [customNote, setCustomNote] = useState("");
-  const { inputData, setInputData } = useContext(Context);
+  useEffect(() => {
+    const storedFormValues = JSON.parse(
+      localStorage.getItem("medicineForm") || "{}"
+    );
+    setFormValues({
+      inputData: storedFormValues.inputData || "",
+      noteValue: storedFormValues.noteValue || "",
+      customNote: storedFormValues.customNote || "",
+      dateStart: dayjs(storedFormValues.dateStart) || "",
+      dateEnd: dayjs(storedFormValues.dateEnd) || "",
+    });
+
+    form.setFieldsValue({
+      title: storedFormValues.inputData || "",
+      note: storedFormValues.noteValue || "",
+      customNote: storedFormValues.customNote || "",
+      dateStart: storedFormValues.dateStart
+        ? dayjs(storedFormValues.dateStart)
+        : null,
+      dateEnd: storedFormValues.dateEnd
+        ? dayjs(storedFormValues.dateEnd)
+        : null,
+    });
+  }, [location.state]);
+  const updateLocalStorage = (updatedValues) => {
+    const updatedFormValues = { ...formValues, ...updatedValues };
+    setFormValues(updatedFormValues);
+    localStorage.setItem("medicineForm", JSON.stringify(updatedFormValues));
+  };
+  const handleDateStartChange = (date?: dayjs.Dayjs | null) => {
+    const updatedValues = {
+      dateStart: date ? date.toISOString() : null,
+      dateEnd: null,
+    };
+    updateLocalStorage(updatedValues);
+    form.setFieldValue("dateEnd", null);
+  };
+
+  const handleDateEndChange = (date?: dayjs.Dayjs | null) => {
+    updateLocalStorage({ dateEnd: date ? date.toISOString() : null });
+  };
+
+  const disableEndDate = (current: dayjs.Dayjs) => {
+    return current && current.isBefore(formValues.dateStart, "day");
+  };
 
   const handleRadioChange = (e) => {
     const value = e.target.value;
-    setNoteValue(value);
-
+    const updates: Partial<typeof formValues> = { noteValue: value };
     if (value !== "other") {
+      updates.customNote = "";
       setCustomNote("");
       form.setFieldValue("customNote", "");
     }
+    updateLocalStorage(updates);
   };
 
-  console.log(inputData, "inputData");
+  const handleInputChange = (e) => {
+    updateLocalStorage({ inputData: e.target.value });
+  };
 
   const handleAddMedicine = async (values) => {
     try {
@@ -44,7 +99,10 @@ const NewMedicineForm = () => {
         title: values.title,
         dateStart: values.dateStart.toISOString(),
         dateEnd: values.dateEnd.toISOString(),
-        notes: noteValue === "other" ? customNote : noteValue || null,
+        notes:
+          formValues.noteValue === "other"
+            ? formValues.customNote
+            : formValues.noteValue || null,
         detailOfDisease: values.detailOfDisease || null,
         feedingAt: values.feedingAt || null,
         medicines: medicines.map((med) => ({
@@ -72,8 +130,9 @@ const NewMedicineForm = () => {
         }
       );
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         message.success("Đơn thuốc đã được gửi thành công!");
+        localStorage.removeItem("medicineForm");
         navigate("/medicine-list");
       }
     } catch (error) {
@@ -92,7 +151,10 @@ const NewMedicineForm = () => {
           onFinish={handleAddMedicine}
           className="w-full max-w-md custom-form"
           initialValues={{
-            title: inputData,
+            title: formValues.inputData,
+            dateStart: formValues.dateStart,
+            dateEnd: formValues.dateEnd,
+            note: formValues.noteValue,
           }}
         >
           <Button
@@ -113,11 +175,11 @@ const NewMedicineForm = () => {
               { required: true, message: "Vui lòng nhập tình trạng bệnh" },
             ]}
           >
-            <Input
+            <input
               placeholder="Tình trạng bệnh"
-              value={inputData}
-              onChange={(e) => setInputData(e.target.value)}
-              className="rounded-full px-5 py-3 text-lg focus-visible:border-none  focus-visible:shadow-none focus-visible:outline-none focus-visible:outline-0 hover:border-none"
+              value={formValues.inputData}
+              onChange={handleInputChange}
+              className="rounded-full px-5 py-3 text-lg focus-visible:border-none  focus-visible:shadow-none focus-visible:outline-none focus-visible:outline-0 hover:border-none w-full"
             />
           </Form.Item>
 
@@ -126,7 +188,13 @@ const NewMedicineForm = () => {
             label="Ngày bắt đầu"
             rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu" }]}
           >
-            <DatePicker format="DD/MM/YYYY" style={{ width: "100%" }} />
+            <DatePicker
+              format="DD/MM/YYYY"
+              style={{ width: "100%", padding: 10 }}
+              placeholder="Chọn ngày bắt đầu"
+              value={formValues.dateStart}
+              onChange={handleDateStartChange}
+            />
           </Form.Item>
 
           <Form.Item
@@ -134,7 +202,14 @@ const NewMedicineForm = () => {
             label="Ngày kết thúc"
             rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc" }]}
           >
-            <DatePicker format="DD/MM/YYYY" style={{ width: "100%" }} />
+            <DatePicker
+              format="DD/MM/YYYY"
+              style={{ width: "100%", padding: 10 }}
+              placeholder="Chọn ngày kết thúc"
+              value={formValues.dateEnd}
+              onChange={handleDateEndChange}
+              disabledDate={disableEndDate}
+            />
           </Form.Item>
 
           <Form.Item
@@ -143,7 +218,10 @@ const NewMedicineForm = () => {
             rules={[{ required: true, message: "Vui lòng chọn lưu ý" }]}
             className="bg-white p-4 rounded-md shadow-md"
           >
-            <Radio.Group className="flex flex-col" onChange={handleRadioChange}>
+            <Radio.Group
+              className="flex flex-col gap-2"
+              onChange={handleRadioChange}
+            >
               <Radio value="Uống thuốc trước khi ăn">
                 Uống thuốc trước khi ăn
               </Radio>
@@ -152,7 +230,7 @@ const NewMedicineForm = () => {
               </Radio>
               <Radio value="Uống thuốc sau khi ăn">Uống thuốc sau khi ăn</Radio>
               <Radio value="other">Lưu ý khác</Radio>
-              {noteValue === "other" && (
+              {formValues.noteValue === "other" && (
                 <Form.Item
                   name="customNote"
                   rules={[
@@ -162,31 +240,35 @@ const NewMedicineForm = () => {
                   <Input
                     placeholder="Nhập lưu ý khác"
                     value={customNote}
-                    onChange={(e) => setCustomNote(e.target.value)}
+                    onChange={(e) => {
+                      const newCustomNote = e.target.value;
+                      setCustomNote(newCustomNote);
+                      updateLocalStorage({ customNote: newCustomNote });
+                    }}
                     className="border-0 border-b border-gray-900 rounded-none"
                   />
                 </Form.Item>
               )}
             </Radio.Group>
           </Form.Item>
-
-          <div className="flex flex-col gap-5 w-full">
-            <h3 className="font-bold">Liều dùng thuốc</h3>
-            <NewMedicineList />
-            <div>
-              <hr className="bg-gray-600 h-[2px] opacity-50" />
-              <Button
-                type="primary"
-                block
-                onClick={() => navigate("/add-new-medicine-item")}
-                className="mt-2 mb-4 bg-[#8dc53f] hover:!bg-[#8dc53f] hover:opacity-70 text-base font-medium py-5 rounded-full shadow-md "
-              >
-                Thêm thuốc
-              </Button>
-            </div>
-          </div>
         </Form>
+        <div className="flex flex-col gap-5 w-full">
+          <h3 className="font-bold">Liều dùng thuốc</h3>
+          <NewMedicineList />
+          <div>
+            <hr className="bg-gray-600 h-[2px] opacity-50" />
+            <Button
+              type="primary"
+              block
+              onClick={() => navigate("/add-new-medicine-item")}
+              className="mt-2 mb-4 bg-[#8dc53f] hover:!bg-[#8dc53f] hover:opacity-70 text-base font-medium py-5 rounded-full shadow-md "
+            >
+              Thêm thuốc
+            </Button>
+          </div>
+        </div>
       </div>
+      <div className="h-14"></div>
     </div>
   );
 };

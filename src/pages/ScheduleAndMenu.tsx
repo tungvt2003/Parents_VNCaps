@@ -7,12 +7,31 @@ import moment from "moment";
 import CustomSpin from "../components/Spin/CustomSpin";
 import ImagePreviewGroupComponent from "../components/ImagePreview/ImagePreview";
 import Redirect from "../components/Navigate/Redirect";
-
+import { read, utils } from "xlsx";
+import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
+const inferFileType = (url: string): string => {
+  const extension = url.split(".").pop()?.toLowerCase();
+  switch (extension) {
+    case "jpg":
+    case "jpeg":
+    case "png":
+    case "gif":
+      return "image";
+    case "pdf":
+      return "pdf";
+    case "xlsx":
+    case "xls":
+      return "xlsx";
+    default:
+      return "unknown";
+  }
+};
 const ScheduleAndMenu = () => {
   const [activeTab, setActiveTab] = useState("schedule");
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
   interface ScheduleItem {
     url: string;
+    type: string;
   }
 
   const [scheduleData, setScheduleData] = useState<ScheduleItem[]>([]);
@@ -50,7 +69,13 @@ const ScheduleAndMenu = () => {
       });
 
       if (response.status === 200) {
-        setScheduleData(response.data.docs);
+        const enrichedData = response.data.docs.map((item: any) => ({
+          url: item.url,
+          type: item.type || inferFileType(item.url),
+        }));
+        console.log("b", enrichedData);
+
+        setScheduleData(enrichedData);
       }
     } catch (error) {
       console.error(error);
@@ -89,7 +114,13 @@ const ScheduleAndMenu = () => {
       });
 
       if (response.status === 200) {
-        setMenuData(response.data.menus.docs);
+        const enrichedData = response.data.menus.docs.map((item: any) => ({
+          url: item.url,
+          type: item.type || inferFileType(item.url), // Add type or infer
+        }));
+        console.log("c", enrichedData);
+
+        setMenuData(enrichedData);
       }
     } catch (error) {
       console.error(error);
@@ -105,6 +136,28 @@ const ScheduleAndMenu = () => {
       fetchSchedule(date.format("YYYY-MM-DD"));
       fetchMenu(date.format("YYYY-MM-DD"));
     }
+  };
+  const renderPreview = (data: ScheduleItem[]) => {
+    return data.map((item, index) => {
+      if (item.type === "image") {
+        return <ImagePreviewGroupComponent key={index} data={[item]} />;
+      } else if (item.type === "pdf" || item.type === "xlsx") {
+        return (
+          <DocViewer
+            documents={[
+              {
+                uri: `${configs.BASE_URL}/${item.url}`,
+                fileType: item.type,
+                fileName: `${configs.BASE_URL}/${item.url}`,
+              },
+            ]}
+            style={{ height: "100%", width: "100%" }}
+          />
+        );
+      } else {
+        return <p key={index}>Không thể hiển thị tệp này.</p>;
+      }
+    });
   };
 
   useEffect(() => {
@@ -155,12 +208,15 @@ const ScheduleAndMenu = () => {
             ) : (
               <div className="bg-white rounded-lg shadow-md p-4">
                 {scheduleData.length > 0 ? (
-                  <ImagePreviewGroupComponent data={scheduleData} />
+                  <div className="bg-white h-full">
+                    {renderPreview(scheduleData)}
+                  </div>
                 ) : (
                   <p>Thời khóa biểu đang được tạo.</p>
                 )}
               </div>
             )}
+            <div className="h-14"></div>
           </div>
         )}
 
@@ -169,10 +225,11 @@ const ScheduleAndMenu = () => {
             {loadingMenu ? (
               <CustomSpin />
             ) : menuData.length > 0 ? (
-              <ImagePreviewGroupComponent data={menuData} />
+              renderPreview(menuData)
             ) : (
               <p>Thực đơn đang được tạo.</p>
             )}
+            <div className="h-14"></div>
           </div>
         )}
       </div>
