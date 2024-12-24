@@ -83,6 +83,7 @@ const NavbarFooter = () => {
         className="custom-drawer"
         closable={false}
         style={{ maxWidth: "70%" }}
+        mask={false}
       >
         <button
           onClick={closeDrawer}
@@ -113,9 +114,12 @@ const NavbarFooter = () => {
                 setSelectedStudentId(student._id);
                 window.dispatchEvent(new Event("userChange"));
                 navigate("/");
+                closeDrawer();
               }}
               className={`flex items-center gap-4 p-4 hover:bg-gray-100 ${
-                selectedStudentId === student._id ? "bg-[#f3f3f3]" : ""
+                selectedStudentId === student._id
+                  ? "bg-[#f3f3f3] drop-shadow-md rounded-lg"
+                  : ""
               }`}
             >
               <img
