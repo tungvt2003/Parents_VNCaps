@@ -83,7 +83,7 @@ const NavbarFooter = () => {
         className="custom-drawer"
         closable={false}
         style={{ maxWidth: "70%" }}
-        mask={false}
+        contentWrapperStyle={{ boxShadow: "none" }}
       >
         <button
           onClick={closeDrawer}
