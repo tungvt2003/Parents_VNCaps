@@ -7,7 +7,6 @@ import { configs } from "../configs";
 import Redirect from "../components/Navigate/Redirect";
 import Context from "./context";
 import dayjs from "dayjs";
-
 const NewMedicineForm = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
@@ -103,8 +102,8 @@ const NewMedicineForm = () => {
           formValues.noteValue === "other"
             ? formValues.customNote
             : formValues.noteValue || null,
-        detailOfDisease: values.detailOfDisease || null,
-        feedingAt: values.feedingAt || null,
+        detailOfDisease: "",
+        feedingAt: "",
         medicines: medicines.map((med) => ({
           name: med.medicineName,
           type:
@@ -113,14 +112,14 @@ const NewMedicineForm = () => {
               : med.medicineType === "Nước ml"
               ? "liquid"
               : "other",
-          morningQuantity: med.medicineMorning || 0,
-          middayQuantity: med.medicineLunch || 0,
-          eveningQuantity: med.medicineAfternoon || 0,
+          morningQuantity: Number(med.medicineMorning) || 0,
+          middayQuantity: Number(med.medicineLunch) || 0,
+          eveningQuantity: Number(med.medicineAfternoon) || 0,
         })),
       };
 
       const response = await axios.post(
-        `${configs.API_URL}/medicines/${userData._id}`,
+        `${configs.API_URL}/medicines`,
         requestData,
         {
           headers: {
@@ -179,7 +178,7 @@ const NewMedicineForm = () => {
               placeholder="Tình trạng bệnh"
               value={formValues.inputData}
               onChange={handleInputChange}
-              className="rounded-full px-5 py-3 text-lg focus-visible:border-none  focus-visible:shadow-none focus-visible:outline-none focus-visible:outline-0 hover:border-none w-full"
+              className="rounded-full px-5 py-3 text-lg w-full"
             />
           </Form.Item>
 
@@ -190,10 +189,15 @@ const NewMedicineForm = () => {
           >
             <DatePicker
               format="DD/MM/YYYY"
-              style={{ width: "100%", padding: 10 }}
+              style={{
+                width: "100%",
+                padding: 10,
+                boxShadow: "none",
+              }}
               placeholder="Chọn ngày bắt đầu"
               value={formValues.dateStart}
               onChange={handleDateStartChange}
+              className="focus-visible:border-black focus-visible:shadow-none focus-visible:outline-none focus-visible:outline-0 hover:border-black"
             />
           </Form.Item>
 
@@ -204,11 +208,16 @@ const NewMedicineForm = () => {
           >
             <DatePicker
               format="DD/MM/YYYY"
-              style={{ width: "100%", padding: 10 }}
+              style={{
+                width: "100%",
+                padding: 10,
+                boxShadow: "none",
+              }}
               placeholder="Chọn ngày kết thúc"
               value={formValues.dateEnd}
               onChange={handleDateEndChange}
               disabledDate={disableEndDate}
+              className="focus-visible:border-black focus-visible:shadow-none focus-visible:outline-none focus-visible:outline-0 hover:border-black"
             />
           </Form.Item>
 
