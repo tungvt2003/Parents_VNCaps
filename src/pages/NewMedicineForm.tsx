@@ -132,6 +132,7 @@ const NewMedicineForm = () => {
       if (response.status === 201) {
         message.success("Đơn thuốc đã được gửi thành công!");
         localStorage.removeItem("medicineForm");
+        localStorage.removeItem("medicineItems");
         navigate("/medicine-list");
       }
     } catch (error) {
