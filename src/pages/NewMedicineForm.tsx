@@ -119,7 +119,7 @@ const NewMedicineForm = () => {
       };
 
       const response = await axios.post(
-        `${configs.API_URL}/medicines`,
+        `${configs.API_URL}/medicines/${userData._id}`,
         requestData,
         {
           headers: {
